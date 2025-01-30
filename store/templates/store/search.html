@@ -1,0 +1,38 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+    
+    {% for course in courses %}
+        <div class="col-lg-4">
+        <a href="{% url 'detalle_curso' course.id %}">
+            {% if course.image %}
+                <img class="thumbnail" src="{{ course.image.url }}">
+            {% else %}
+                <img class="thumbnail" src="/courses/placeholder.png">
+            {% endif %}
+        </a>
+        <div class="box-element course">
+            <h6><strong>{{course.name}}</strong></h6>
+            <hr>
+
+            <button class="btn btn-outline-secondary add-btn">Añadir</button>
+            <a class="btn btn-outline-success" href="#">Ver Carrito</a>
+            <h4 style="display: inline-block; float: right;"><strong>
+                {{course.price|floatformat:2}} €
+                </strong></h4>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}

@@ -1,0 +1,47 @@
+{% extends 'store/main.html' %}
+
+{% block content %}
+<h2>Lista de Clientes</h2>
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>  <!-- Columna para las acciones -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers %}
+        <tr>
+            <td>{{ customer.id }}</td>
+            <td>{{ customer.name }}</td>
+            <td>{{ customer.email }}</td>
+            <td>{{ customer.adress }}</td>
+            <td>{{ customer.phone }}</td>
+            <td>
+                <!-- Botón para eliminar el cliente -->
+                <form method="post" action="{% url 'delete_customer' customer.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'store' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}
+

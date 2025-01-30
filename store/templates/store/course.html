@@ -1,0 +1,70 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            {% if course.image %}
+                <img class="img-fluid" src="{{ course.image.url }}" alt="{{ course.name }}">
+            {% else %}
+                <img class="img-fluid" src="{% static 'course/Default.jpg.png' %}" alt="{{ course.name }}">
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h2>{{ course.name }}</h2>
+            <h4>{{ course.course_type.name }}</h4>
+            <p><strong>Ciudad:</strong> {{ course.city }}</p>
+            <p><strong>Precio:</strong> {{ course.price|floatformat:2 }} €</p>
+            <p><strong>Detalles:</strong> {{ course.details }}</p>
+            <p><strong>Duración:</strong> {{ duration }} días</p>
+            <p><strong>Capacidad:</strong> {{ course.capacity }} alumnos</p>
+            <p><strong>Fecha de inicio:</strong> {{ course.start_date }}</p>
+            <p><strong>Fecha de fin:</strong> {{ course.end_date }}</p>
+            
+            <p><strong>Disponibilidad:</strong> 
+                {% if is_available %}
+                    {{ is_available|yesno:"Disponible,No disponible" }}
+                {% else %}
+                    <span class="text-danger font-weight-bold">No disponible</span>
+                {% endif %}
+            </p>
+
+            {% if is_available %}
+                <div style="flex-direction: column;">
+                    <button data-course="{{ course.id }}" data-action="add" data-quantity="1" class="btn btn-outline-success add-btn update-cart">Añadir al Carrito</button>
+                    <input id="quantity-input" type="number" value="1" min="1" style="width: 50px; margin-top: 10px">
+                </div>
+            {% else %}
+                <p class="text-muted">Este curso no está disponible en este momento.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/course.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+<script>
+    document.getElementById('quantity-input').addEventListener('input', function (e) {
+        const addBtn = document.querySelector('.update-cart');
+        if (addBtn) {
+            addBtn.dataset.quantity = e.target.value; // Actualiza dinámicamente el atributo data-quantity
+        }
+    });    
+    window.onload = function() {
+        document.getElementById('quantity-input').value = 1;
+        document.getElementsByClassName('update-cart')[0]; 
+    };
+</script>
+
+{% endblock %}
+

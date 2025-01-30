@@ -1,0 +1,23 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+  <h2>Perfil de {{ customer.name }}</h2>
+  <ul>
+    <li>Email: {{ customer.email }}</li>
+    <li>Dirección: {{ customer.adress }}</li>
+    <li>Teléfono: {{ customer.phone }}</li>
+  </ul>
+  <a href="{% url 'create_update_profile' %}" class="btn btn-outline-secondary add-btn">Modificar datos del perfil</a>
+  <br>
+  <br>
+{% endblock content %}

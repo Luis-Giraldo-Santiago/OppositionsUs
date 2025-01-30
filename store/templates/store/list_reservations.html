@@ -1,0 +1,68 @@
+{% extends 'store/main.html' %}
+
+{% block content %}
+<h2>Lista de Reservas</h2>
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Pedido</th>
+            <th>Fecha del pedido</th>
+            <th>Fecha de la reserva</th>
+            <th>Estado</th>
+            <th>Acciones</th>  <!-- Nueva columna para las acciones -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for reservation in reservations %}
+        <tr>
+            <td>{{ reservation.id }}</td>
+            <td>{{ reservation.order.tracking_id }}</td>
+            <td>{{ reservation.reservation_date }}</td>
+            <td>{{ reservation.reserved_on }}</td>
+            <td>{{ reservation.order.status }}</td>
+            <td>
+                {% if reservation.order.status|stringformat:"s" == 'No pagado' %}
+                    <form method="post" action="{% url 'confirmar_pago' reservation.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-sm">
+                            Pagado
+                        </button>
+                    </form>
+                {% else %}
+                    {% if reservation.order.status|stringformat:"s" == 'En trámite' or not reservation.is_confirmed%}
+                        <form method="post" action="{% url 'confirmar_reserva' reservation.id %}" style="display:inline;">
+                            {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    Aceptar reserva
+                                </button>
+                        </form>
+                    {% endif %}
+                    {% if reservation.order.status|stringformat:"s" == 'En trámite' or reservation.is_confirmed%}
+                        <form method="post" action="{% url 'denegar_reserva' reservation.id %}" style="display:inline;">
+                            {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    Denegar reserva
+                                </button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </td>
+            
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'store' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}
+

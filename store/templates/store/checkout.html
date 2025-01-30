@@ -1,0 +1,345 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+     <div class="col-lg-6">
+          <div class="box-element" id="form-wrapper">
+               <form id="form">
+                    {% csrf_token %}
+                    <div id="user-info">
+                         <div class="form-field ">
+                             <input required class="form-control" type="text" name="name" placeholder="Nombre">
+                         </div>
+                         <div class="form-field">
+                             <input required class="form-control" type="email" name="email" placeholder="Correo Electrónico">
+                         </div>
+                         <div class="form-field">
+                              <input required class="form-control" type="phone" name="phone" placeholder="Teléfono">
+                          </div>
+                    </div>
+                    
+                    <div id="shipping-info">
+                         <hr>
+                         <p>Información de envío:</p>
+                         <hr>
+                         {% if shippingData %}
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="address" placeholder="Dirección"
+                                   value="{{ shippingData.address }}">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="city" placeholder="Ciudad"
+                                   value="{{ shippingData.city }}">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="state" placeholder="Provincia"
+                                   value="{{ shippingData.state }}">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="zipcode" placeholder="Código postal"
+                                   value="{{ shippingData.zipcode }}">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="country" placeholder="País"
+                                   value="{{ shippingData.country }}">
+                         </div>
+                         {% else %}
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="address" placeholder="Dirección" value="">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="city" placeholder="Ciudad" value="">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="state" placeholder="Provincia" value="">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="zipcode" placeholder="Código postal" value="">
+                         </div>
+                         <div class="form-field">
+                              <input class="form-control" type="text" name="country" placeholder="País" value="">
+                         </div>
+                         {% endif %}
+                         <input type="hidden" id="order-total" value="{{order.get_cart_total|floatformat:2}}">
+
+                    </div>
+
+                    <hr>
+                    <input id="form-button" class="btn btn-info btn-block rounded-2" type="submit" value="Continuar" disabled>
+               </form>
+          </div>
+
+          <br>
+          <div class="box-element hidden" id="payment-info">
+               
+            
+                       
+               
+                    <tr style="margin-top: 15px;">
+                         <button id="make-payment" class="btn btn-success rounded-2" style="width: 100%; padding: 15px; margin-bottom: 15px; font-size: 20px; ">Contrareembolso</button>
+
+                         <div id="paypal-button-container"></div>
+                         <script src="https://www.paypal.com/sdk/js?client-id=AUI4xS4fiO5bfNfeFRoXq7296haQEMhAGdYfmy1jkPsaJepD5T0Jr9P5ECXK0zhrMK3iSUxaMlzGk1ml&currency=EUR"></script>
+
+                         <script>
+                         paypal.Buttons({
+                              // Set up the transaction
+                              createOrder: function(data, actions) {
+                                   var orderTotal = document.getElementById('order-total').value;
+                                   
+                                   var floatOrderTotal = orderTotal.replace(',', '.');
+                                   var totalWithDelivery = parseFloat(floatOrderTotal);
+                                   if(totalWithDelivery < 100.00){
+                                        totalWithDelivery = totalWithDelivery + 20.00
+                                   }
+
+                                   return actions.order.create({
+                                       purchase_units: [{
+                                            amount: {
+                                               value: totalWithDelivery.toFixed(2)
+                                            }
+                                        }]
+                                    });
+                                  },
+                                // Finalize the transaction
+                                onApprove: function(data, actions) {
+                                   return actions.order.capture().then(function(orderData) {
+                                        submitFormData(false);
+
+                                     });
+                                  }
+                         }).render('#paypal-button-container');
+                         </script>
+                    </tr>
+               </tbody>
+               </table>
+          </div>
+          
+     </div>
+
+     <div class="col-lg-6">
+          <div class="box-element">
+               <a  class="btn btn-outline-dark" href="{% url 'cart' %}">&#x2190; Volver al carrito</a>
+               <hr>
+               <h3>Resumen del pedido</h3>
+               <hr>
+               {% for item in items %}
+                    {% if item.name %}
+                         <div class="cart-row">
+                              {% if not item.img %}
+                              <div style="flex:2"><img class="row-image" src="{% static 'images/placeholder.png' %}"></div>
+                              {% else %}
+                              <div style="flex:2"><img class="row-image" src="{{ item.img }}"></div>
+                              {% endif %}
+                              <div style="flex:2"><b>{{item.name}}</b></div>
+                              <div style="flex:1"><p>{{item.price}}€</p></div>
+                              <div style="flex:1"><p>x{{item.quantity}}</p></div>
+                         </div>
+                    {% else %}
+                         <div class="cart-row">
+                              {% if not item.course.image %}
+                              <div style="flex:2"><img class="row-image" src="{% static 'images/placeholder.png' %}"></div>
+                              {% else %}
+                              <div style="flex:2"><img class="row-image" src="{{ item.course.image.url }}"></div>
+                              {% endif %}
+                              <div style="flex:2"><b>{{item.course.name}}</b></div>
+                              <div style="flex:1"><p>{{item.course.price}}€</p></div>
+                              <div style="flex:1"><p>x{{item.quantity}}</p></div>
+                         </div>
+                    {% endif %}
+               {% endfor %}
+               <h5 id="courses">Productos:   <strong>{{cartItems}}</strong></h5>
+               <h5 id="total">Total:   <strong>{{order.get_cart_total|floatformat:2}}€</strong></h5>
+          </div>
+     </div>
+</div>
+<script>
+
+     window.onload = function(){
+          var user = "{{ user }}";
+    if (user !== 'AnonymousUser') {
+        // Si el usuario está autenticado, llenar automáticamente los campos del formulario
+        var username = "{{ request.user.customer.name }}";
+        var userEmail = "{{ request.user.email }}";
+        var userPhone = "{{ request.user.phone }}";
+
+        document.getElementById('form').name.value = username;
+        document.getElementById('form').email.value = userEmail;
+        document.getElementById('form').phone.value = userPhone;
+
+        // Deshabilitar los campos ya que están autocompletados
+        document.getElementById('user-info').querySelectorAll('input').forEach(function(input) {
+            input.disabled = true;
+        });
+    }
+}
+     
+
+     if (user != 'AnonymousUser'){
+          document.getElementById('user-info').innerHTML = ''
+     }
+
+     var form = document.getElementById('form')
+     form.addEventListener('submit', function(e){
+
+          if(form.zipcode.value.length != 5){
+               alert('El código postal debe tener 5 dígitos')
+               e.preventDefault()
+               return
+          }
+          if(form.zipcode.value.match(/^[0-9]+$/) == null){
+               alert('El código postal debe contener solo números')
+               e.preventDefault()
+               return
+          }
+
+          e.preventDefault()
+          document.getElementById('form-button').classList.add('hidden')
+          document.getElementById('payment-info').classList.remove('hidden')
+          
+     })
+
+     var inputs = document.querySelectorAll('input[type="text"]');
+     var submitButton = document.getElementById('form-button');
+
+     inputs.forEach(input => {
+          var allFilled = Array.from(inputs).every(input => input.value !== '');
+          submitButton.disabled = !allFilled;
+     });
+     
+     inputs.forEach(input => {
+          input.addEventListener('input', function() {
+               var allFilled = Array.from(inputs).every(input => input.value !== '');
+               submitButton.disabled = !allFilled;
+          });
+     });
+
+     window.onload = function () {
+          var  totalInicial = "{{ order.get_cart_total|floatformat:2 }}";
+          var totalInicial = totalInicial.replace(',', '.');
+          var realTotal = parseFloat(totalInicial);
+          var shippingCost = 20.00; // Coste de envío fijo si el total es menor a 100 euros
+          var totalElement = document.getElementById("total");
+          var coursesElement = document.getElementById("courses");
+      
+          // Actualizar el resumen inicial
+          updateOrderSummary(realTotal, shippingCost);
+      
+          // Función para actualizar el resumen del pedido
+          function updateOrderSummary(total, shipping) {
+               let modifiedTotal;
+               if (total < 100.00) {
+                   modifiedTotal = (total + shipping).toFixed(2); // Asegura dos decimales
+                   
+                   // Reemplaza el punto por coma para el formato adecuado
+                   modifiedTotal = modifiedTotal.replace('.', ',');
+                   
+                   totalElement.innerHTML =
+                       "Total:   <strong>" + modifiedTotal + "€</strong>";
+                   coursesElement.innerHTML =
+                       "Productos:   <strong>{{ cartItems }}</strong> + Coste de papeleo (20,00€)";
+               } else {
+                   modifiedTotal = total.toFixed(2); // Asegura dos decimales
+                   
+                   // Reemplaza el punto por coma para el formato adecuado
+                   modifiedTotal = modifiedTotal.replace('.', ',');
+                   
+                   totalElement.innerHTML =
+                       "Total:   <strong>" + modifiedTotal + "€</strong>";
+                   coursesElement.innerHTML =
+                       "Productos:   <strong>{{ cartItems }}</strong>";
+               }
+           }
+           
+           
+      
+          // Función para manejar el envío del formulario
+          var form = document.getElementById("form");
+          form.addEventListener("submit", function (e) {
+              if (form.zipcode.value.length != 5) {
+                  alert("El código postal debe tener 5 dígitos");
+                  e.preventDefault();
+                  return;
+              }
+              if (form.zipcode.value.match(/^[0-9]+$/) == null) {
+                  alert("El código postal debe contener solo números");
+                  e.preventDefault();
+                  return;
+              }
+      
+              e.preventDefault();
+              document.getElementById("form-button").classList.add("hidden");
+              document.getElementById("payment-info").classList.remove("hidden");
+          });
+      };
+      
+
+     document.getElementById('make-payment').addEventListener('click', function(e){
+          submitFormData(true)
+     })
+
+     function submitFormData(contrareembolso) {
+          var userFormData = {
+               'name':null,
+               'email':null,
+               'phone':null,
+          }
+          var shippingInfo = {
+               'address':form.address.value,
+               'city':form.city.value,
+               'state':form.state.value,
+               'zipcode':form.zipcode.value,
+               'country':form.country.value,
+          }
+
+          if (user == 'AnonymousUser'){
+               userFormData.name = form.name.value
+               userFormData.email = form.email.value
+               userFormData.phone = form.phone.value
+          }
+          
+          var csrftoken = getCookie('csrftoken')
+          var url = "{% url 'process_order' %}"
+          fetch(url, {
+               method:'POST',
+               headers:{
+                    'Content-Type':'application/json',
+                    'X-CSRFToken':csrftoken,
+               },
+               body:JSON.stringify({'form':userFormData, 'shipping':shippingInfo, 'contrareembolso':contrareembolso}),
+          })
+          .then((response) => response.json())
+          .then((data) => {
+               if (data.error){
+                    alert(data.error)
+               } else {
+                    alert('Pedido realizado con éxito')
+                    var cart = getCookie('cart')
+                    if (cart){
+                         document.cookie = 'cart=' + JSON.stringify({}) + ";domain=;path=/"
+                    }
+                    window.location.href = "/tracking/" + data.tracking
+               }
+          })
+     }
+      
+</script>
+{% endblock content %}
+
+
+
+
+
+
+
+
+

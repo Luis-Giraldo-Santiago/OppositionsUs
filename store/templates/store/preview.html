@@ -1,0 +1,96 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+    {% if customer.admin == True %}
+    <a href="#">
+        <button class="btn btn-outline-secondary btn-sm add-btn" style="float: right; padding: 10px 20px; font-size: 20px;">Crear curso</button>
+    </a>
+    {% endif %}
+    <!-- Botón para acceder a la función store -->
+    
+    <!-- Mostrar los cursos filtrados -->
+    <div>
+        <h2><strong>Últimos Cursos</strong></h2>
+        <form action="{% url 'store' %}" method="get">
+            <button type="submit" style="float: right; padding: 10px 20px; font-size: 20px;">Ver todos los cursos</button>
+        </form>
+    </div>
+    {% for course in courses_preview %}
+        <div class="col-lg-4">
+            <a href="{% url 'details' course.id %}">
+                {% if course.image %}
+                    <img class="thumbnail" src="{{ course.image.url }}">
+                {% else %}
+                    <img class="thumbnail" src="/products/placeholder.png">
+                {% endif %}
+            </a>
+            <div class="box-element product">
+                <h6><strong>{{ course.name }}</strong></h6>
+                <h8><strong>Ciudad:</strong> {{ course.city }}</h8>
+                <h8><strong>Tipo:</strong> {{ course.course_type }}</h8>
+                <h8><strong>Disponibilidad:</strong> {{ course.is_available|yesno:"Disponible,No disponible" }}</h8>
+                <hr >
+                <a href="{% url 'details' course.id %}">
+                    <button class="btn btn-outline-secondary add-btn">Ver curso</button>
+                </a>
+                {% if customer.admin == True %}
+                    <a href="#">
+                        <button class="btn btn-outline-secondary btn-sm add-btn" style="padding: 5px 10px; font-size: 12px;">Editar curso</button>
+                    </a>
+                    <a href="#">
+                        <button class="btn btn-outline-secondary btn-sm add-btn" style="padding: 5px 10px; font-size: 12px;">Borrar curso</button>
+                    </a>
+                {% else %}
+                    {% if course.is_available %}
+                        <div style="flex-direction: column;">
+                            <button data-course="{{ course.id }}" data-action="add" data-quantity="1" class="btn btn-outline-success add-btn update-cart">Añadir al Carrito</button>
+                            <input class="quantity-input" type="number" value="1" min="1" style="width: 50px; margin-top: 10px" data-course="{{ course.id }}">
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Este curso no está disponible en este momento.</p>
+                    {% endif %}
+                {% endif %}
+
+                <div class="price-section">
+                    <h4><strong>Pecio: {{ course.price|floatformat:2 }} €</strong></h4>
+                </div>
+                
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script type="text/javascript" src="{% static 'js/course.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+<script>
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function (e) {
+            const courseId = e.target.dataset.course; // Obtén el ID del curso
+            const addBtn = document.querySelector(`.update-cart[data-course="${courseId}"]`);
+            if (addBtn) {
+                addBtn.dataset.quantity = e.target.value; // Actualiza dinámicamente el atributo data-quantity
+            }
+        });
+    });
+    
+    // Establece el valor inicial para todos los campos de cantidad al cargar la página
+    window.onload = function () {
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.value = 1;
+        });
+    };
+    
+</script>
+
+
+{% endblock content %}

@@ -1,0 +1,106 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="box-element">
+            <a class="btn btn-outline-secondary rounded-3" href="{% url 'store' %}">&#x2190; Continuar Comprando</a>
+
+            <br>
+            <br>
+            <table class="table">
+                <tr>
+                    <th><h5>Productos: <strong>{{order.get_cart_items}}</strong></h5></th>
+                    <th><h5>Total:<strong> {{order.get_cart_total|floatformat:2}}€</strong></h5></th>
+                    <th>
+                        <a  style="float:right; margin:5px;" class="btn btn-success rounded-3" href="{% url 'checkout' %}">Finalizar Compra</a>
+                    </th>
+                </tr>
+            </table>
+		</div>
+        
+		<br>
+        {% if items %}
+		<div class="box-element">
+            <div class="cart-row">
+                <div style="flex:2"></div>
+                <div style="flex:2"><strong>Producto</strong></div>
+                <div style="flex:1"><strong>Precio</strong></div>
+                <div style="flex:1"><strong>Cantidad</strong></div>
+                <div style="flex:1"><strong>Total</strong></div>
+                
+            </div>
+            
+            {% for item in items %}
+                {% if item.name %}
+                    <div class="cart-row">
+                        
+                        <div style="flex:2">
+                            {% if item.img %}
+                            <img class="row-image" src="{{ item.img }}">
+                            {% else %}
+                            <img class="row-image" src="{% static  'images/placeholder.png' %}">
+                            {% endif %}
+                        </div>
+                        
+                        <div style="flex:2"><p>{{ item.name }}</p></div>
+                        <div style="flex:1"><p>{{item.price|floatformat:2}}€</p></div>
+                        <div style="flex:1">
+                            <p class="quantity">{{item.quantity}}</p>
+                            <div class="quantity">
+                                
+                                <img data-course="{{item.id}}" 
+                                class="chg-quantity update-cart"  
+                                data-action="add" data-quantity="1" src="{% static  'images/arrow-up.png' %}">
+                        
+                                <img data-course="{{item.id}}" data-action="remove" 
+                                class="chg-quantity update-cart" src="{% static  'images/arrow-down.png' %}">
+                            </div>
+                        </div>
+                        <div style="flex:1"><p>{{item.get_total|floatformat:2}}€</p></div>
+                    </div>
+                {% else %}
+                    <div class="cart-row">
+
+                        <div style="flex:2">
+                            {% if item.course.image %}
+                            <img class="row-image" src="{{ item.course.image.url }}">
+                            {% else %}
+                            <img class="row-image" src="{% static  'images/placeholder.png' %}">
+                            {% endif %}
+                        </div>
+                        
+                        <div style="flex:2"><p>{{ item.course.name }}</p></div>
+                        <div style="flex:1"><p>{{item.course.price|floatformat:2}}€</p></div>
+                        <div style="flex:1">
+                            <p class="quantity">{{item.quantity}}</p>
+                            <div class="quantity">
+                                
+                                <img data-course="{{item.course.id}}" 
+                                class="chg-quantity update-cart"  
+                                data-action="add" data-quantity="1" src="{% static  'images/arrow-up.png' %}">
+                        
+                                <img data-course="{{item.course.id}}" 
+                                class="chg-quantity update-cart" 
+                                data-action="remove" src="{% static  'images/arrow-down.png' %}">
+                            </div>
+                        </div>
+                        <div style="flex:1"><p>{{item.get_total|floatformat:2}}€</p></div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+		</div>
+        {% endif %}
+	</div>
+</div>
+<script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+{% endblock content %}

@@ -1,0 +1,205 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+    {% if customer.admin == True %}
+    {% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <a href="{% url 'createCourse' %}">
+        <button class="btn btn-outline-secondary btn-sm add-btn" style="float: right; padding: 10px 20px; font-size: 20px;">Crear curso</button>
+    </a>
+    {% endif %}
+    <div class="col-lg-12">
+        <form action="{% url 'store' %}" method="get" class="p-3 bg-light rounded shadow">
+            <h5 class="text-center mb-4">Filtrar Cursos</h5>
+    
+            <!-- Filtros en una sola fila -->
+            <div class="row g-3 align-items-center">
+    
+                <!-- Buscar curso -->
+                <div class="col-md-3">
+                    <label for="q" class="form-label">Buscar curso</label>
+                    <input type="text" id="q" name="q" class="form-control" placeholder="Buscar curso" value="{{ query }}">
+                </div>
+    
+                <!-- Precio mínimo -->
+                <div class="col-md-2">
+                    <label for="price_min" class="form-label">Precio mínimo (€)</label>
+                    <input type="number" id="price_min" name="price_min" class="form-control" value="{{ price_min }}" min="0">
+                </div>
+    
+                <!-- Precio máximo -->
+                <div class="col-md-2">
+                    <label for="price_max" class="form-label">Precio máximo (€)</label>
+                    <input type="number" id="price_max" name="price_max" class="form-control" value="{{ price_max }}" min="0">
+                </div>
+    
+                <!-- Tipo de curso -->
+                <div class="col-md-3">
+                    <label for="course_type" class="form-label">Tipo de curso</label>
+                    <select id="course_type" name="course_type" class="form-select">
+                        <option value="">--Seleccionar tipo--</option>
+                        {% for course_type in course_types %}
+                            <option value="{{ course_type.id }}" {% if course_type.id|stringformat:"d" == course_type_id %}selected{% endif %}>
+                                {{ course_type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+    
+                <!-- Ciudad -->
+                <div class="col-md-2">
+                    <label for="city" class="form-label">Ciudad</label>
+                    <select id="city" name="city" class="form-select">
+                        <option value="">--Seleccionar ciudad--</option>
+                        {% for city_item in city_list %}
+                            <option value="{{ city_item }}" {% if city_item == city %}selected{% endif %}>
+                                {{ city_item }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <!-- Filtros de ordenación -->
+<div class="row g-3 align-items-center">
+    <!-- Ordenar por nombre (A-Z) -->
+    <div class="col-md-4">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sort_order" id="sort_name" value="name" {% if sort_order == 'name' %}checked{% endif %}>
+            <label class="form-check-label" for="sort_name">
+                Ordenar por nombre (A-Z)
+            </label>
+        </div>
+    </div>
+
+    <!-- Ordenar por precio (de menor a mayor) -->
+    <div class="col-md-4">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sort_order" id="sort_price" value="price" {% if sort_order == 'price' %}checked{% endif %}>
+            <label class="form-check-label" for="sort_price">
+                Ordenar por precio (Menor a mayor)
+            </label>
+        </div>
+    </div>
+
+    <!-- Ordenar por ciudad (A-Z) -->
+    <div class="col-md-4">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sort_order" id="sort_city" value="city" {% if sort_order == 'city' %}checked{% endif %}>
+            <label class="form-check-label" for="sort_city">
+                Ordenar por ciudad (A-Z)
+            </label>
+        </div>
+    </div>
+</div>
+
+
+    
+            <!-- Botón de filtro -->
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary px-5">Filtrar</button>
+            </div>
+        </form>
+    </div>
+    
+    
+
+    <!-- Mostrar los cursos filtrados -->
+    {% regroup courses by course_type as grouped_courses %}
+
+{% for group in grouped_courses %}
+    <div class="course-section">
+        <h2 class="section-title">{{ group.grouper }}</h2>
+        <hr>
+        <div class="row">
+            {% for course in group.list %}
+                <div class="col-lg-4">
+                    <a href="{% url 'details' course.id %}">
+                        {% if course.image %}
+                            <img class="thumbnail" src="{{ course.image.url }}">
+                        {% else %}
+                            <img class="thumbnail" src="/products/placeholder.png">
+                        {% endif %}
+                    </a>
+                    <div class="box-element product">
+                        <h6><strong>{{ course.name }}</strong></h6>
+                        <h8><strong>Ciudad:</strong> {{ course.city }}</h8>
+                        <h8><strong>Tipo:</strong> {{ course.course_type }}</h8>
+                        <h8><strong>Disponibilidad:</strong> 
+                            {% if course.is_available %}
+                                {{ course.is_available|yesno:"Disponible,No disponible" }}
+                            {% else %}
+                                <span class="text-danger font-weight-bold">No disponible</span>
+                            {% endif %}
+                        </h8>
+                        <hr>
+                        <a href="{% url 'details' course.id %}">
+                            <button class="btn btn-outline-secondary add-btn">Ver curso</button>
+                        </a>
+                        {% if customer.admin == True %}
+                            <a href="{% url 'edit_course' course.id %}">
+                                <button class="btn btn-outline-secondary btn-sm add-btn" style="padding: 5px 10px; font-size: 12px;">Editar curso</button>
+                            </a>
+                            <a href="{% url 'delete_course' course.id %}">
+                                <button class="btn btn-outline-secondary btn-sm add-btn" style="padding: 5px 10px; font-size: 12px;">Borrar curso</button>
+                            </a>
+                        {% else %}
+                            {% if course.is_available %}
+                                <div style="flex-direction: column;">
+                                    <button data-course="{{ course.id }}" data-action="add" data-quantity="1" class="btn btn-outline-success add-btn update-cart">Añadir al Carrito</button>
+                                    <input class="quantity-input" type="number" value="1" min="1" style="width: 50px; margin-top: 10px" data-course="{{ course.id }}">
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Este curso no está disponible en este momento.</p>
+                            {% endif %}
+                        {% endif %}
+
+                        <div class="price-section">
+                            <h4><strong>Precio: {{ course.price|floatformat:2 }} €</strong></h4>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+
+</div>
+
+<script type="text/javascript" src="{% static 'js/course.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+<script>
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', function (e) {
+            const courseId = e.target.dataset.course; // Obtén el ID del curso
+            const addBtn = document.querySelector(`.update-cart[data-course="${courseId}"]`);
+            if (addBtn) {
+                addBtn.dataset.quantity = e.target.value; // Actualiza dinámicamente el atributo data-quantity
+            }
+        });
+    });
+    
+    // Establece el valor inicial para todos los campos de cantidad al cargar la página
+    window.onload = function () {
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.value = 1;
+        });
+    };
+    
+</script>
+
+{% endblock content %}

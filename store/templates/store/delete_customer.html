@@ -1,0 +1,19 @@
+{% extends 'store/main.html' %}
+
+{% block content %}
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <p>¿Estás seguro de que deseas eliminar este cliente "<strong>{{ customer.name }}</strong>"?</p>
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a href="{% url 'store' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock content %}
